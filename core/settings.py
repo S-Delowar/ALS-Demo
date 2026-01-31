@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'apps.users',
     'apps.persona', 
     'apps.chat',
-    'apps.documents'
+    'apps.documents',
+    'apps.chatbot',
 ]
 
 MIDDLEWARE = [

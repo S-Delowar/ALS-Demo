@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 
 
 from apps.chat.models import ChatSession, ChatMessage
+from apps.persona.services import check_and_trigger_persona_update
 from .serializers import ChatSessionSerializer, ChatMessageSerializer
 
 
@@ -41,6 +42,12 @@ class SendMessageView(APIView):
             session.title = content[:60]  # safe truncation
             session.save(update_fields=["title"])
 
+        # Background Task
+        # Check Persona Trigger
+        check_and_trigger_persona_update(
+            session=session, 
+            user=request.user
+        )
 
         return Response(ChatMessageSerializer(message).data)
 
