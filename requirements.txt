@@ -1,0 +1,36 @@
+Django==5.2.8
+djangorestframework==3.16.1
+djangorestframework-simplejwt==5.5.1
+django-cors-headers==4.9.0
+python-dotenv==1.2.1
+drf-spectacular==0.29.0
+pillow==12.0.0
+gunicorn==23.0.0
+openai==2.15.0
+requests==2.32.5
+beautifulsoup4==4.14.3
+
+psycopg2-binary==2.9.11
+
+# background tasks
+celery==5.6.2
+redis==7.1.0
+django-celery-beat==2.8.1
+django-celery-results==2.6.0
+
+# vector database
+tiktoken==0.12.0
+weaviate-client==4.19.2
+sentence-transformers==5.2.2
+torch==2.10.0
+
+# document processing
+pypdf==6.6.2
+python-docx==1.2.0
+langchain==1.2.7
+langchain-text-splitters==1.1.0
+
+
+
+
+
