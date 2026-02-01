@@ -14,11 +14,11 @@ def check_and_trigger_persona_update(session: ChatSession, user):
         user_msg_count = session.messages.filter(role="user").count()
 
         # Trigger on 5th, 10th, 15th message...
-        if user_msg_count > 0 and user_msg_count % 5 == 0:
+        if user_msg_count > 0 and user_msg_count % 2 == 0:
             
             # Get last 10 messages for context
             # (We need both user and AI messages to understand context)
-            recent_msgs_qs = session.messages.order_by("-created_at")[:5]
+            recent_msgs_qs = session.messages.order_by("-created_at")[:4]
             
             # Reverse to get chronological order
             recent_msgs = [
