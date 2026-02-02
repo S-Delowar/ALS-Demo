@@ -24,5 +24,19 @@ services:
       - "6379:6379"
     restart: unless-stopped
 
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: postgres
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     POSTGRES_USER: myuser          # Change to your desired username
+  #     POSTGRES_PASSWORD: mypassword  # Change to your desired password
+  #     POSTGRES_DB: mydatabase        # Change to your desired default DB name
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   restart: unless-stopped
+
 volumes:
   weaviate_data:
+  postgres_data:

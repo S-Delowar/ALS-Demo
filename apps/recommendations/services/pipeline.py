@@ -1,3 +1,5 @@
+from apps.memory.global_activities import search_global_activities
+from apps.memory.persona_memory import search_persona_memory
 from apps.recommendations.services.analyzer import analyze_user_needs
 from apps.recommendations.services.searcher import search_content
 from apps.recommendations.models import Article, Course, Video, Book
@@ -33,11 +35,44 @@ from apps.recommendations.services.verifier import (
 
 
 def run_recommendation_pipeline(user, profession, chat_history):
+    
+    # --- 1. Retrieve Persona Memory ---
+    # We query for general interests or the profession to find relevant user background
+    persona_query = f"Interests, goals, and learning style for {profession}"
+    persona_data = search_persona_memory(
+        query=persona_query, 
+        user_id=user.id, 
+        limit=3
+    )
+    # Format list of dicts/text into a single string
+    # Assuming search_persona_memory returns [{'text': '...'}, ...]
+    persona_text = "\n".join([p.get('text', '') for p in persona_data])
+
+    # --- 2. Retrieve Global Activities ---
+    # We search for what others in this profession are doing/asking
+    # Using the user's chat history as a seed, or generic "trends" if history is empty
+    global_query = chat_history if len(chat_history) > 50 else f"Trending skills for {profession}"
+    
+    global_activities_data = search_global_activities(
+        query=global_query, 
+        profession=profession, 
+        limit=3
+    )
+    # Format list of strings into a single string
+    global_activities_text = "\n".join(global_activities_data)
+
+    # --- 3. Analyze Needs (LLM) ---
+    topics_plan = analyze_user_needs(
+        profession=profession, 
+        chat_history=chat_history,
+        persona=persona_text,
+        global_activities=global_activities_text
+    )
 
     # Analyze Needs
-    topics_plan = analyze_user_needs(profession, chat_history)
+    # topics_plan = analyze_user_needs(profession, chat_history)
     
-    print("=== Topics Plan ===")
+    print("=== *********************Topics Plan *****************************===")
     print(topics_plan)
     print("==\n\n\n\n\n=================")
     

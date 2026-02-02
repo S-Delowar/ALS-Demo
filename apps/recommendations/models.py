@@ -5,8 +5,8 @@ class BaseContent(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     topic = models.CharField(max_length=255)
     title = models.CharField(max_length=500)
-    url = models.URLField(max_length=1000)
-    thumbnail = models.URLField(max_length=1000, blank=True, null=True)
+    url = models.TextField()
+    thumbnail = models.TextField(blank=True, null=True)
     platform = models.CharField(max_length=150, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -26,7 +26,7 @@ class Course(BaseContent):
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
 class Video(BaseContent):
-    embed_url = models.URLField(max_length=1000, blank=True, null=True)
+    embed_url = models.TextField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
 
 class Book(BaseContent):
