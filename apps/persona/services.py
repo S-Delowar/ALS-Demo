@@ -26,7 +26,7 @@ def check_and_trigger_persona_update(session: ChatSession, user):
                 for m in reversed(recent_msgs_qs)
             ]
             
-            logger.info(f"Triggering persona update for user {user.id} at message count {user_msg_count}")
+            print(f"Triggering persona update for user {user.id} at message count {user_msg_count}")
             
             # need to pass user id instead of user object
             update_user_persona_task.delay(
@@ -36,5 +36,5 @@ def check_and_trigger_persona_update(session: ChatSession, user):
             return True
             
     except Exception as e:
-        logger.info(f"Failed to trigger persona update: {e}")
+        print(f"Failed to trigger persona update: {e}")
         return False

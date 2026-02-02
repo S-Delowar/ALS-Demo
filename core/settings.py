@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'apps.chat',
     'apps.documents',
     'apps.chatbot',
+    'apps.recommendations',
 ]
 
 MIDDLEWARE = [

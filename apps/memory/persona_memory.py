@@ -14,7 +14,7 @@ def save_persona_memory(
 ):
     vector = embed_text(text)
     
-    logger.info("Text Embedding done, saving to Weaviate...")
+    print("=====******\n====Text Embedding done, saving to Weaviate...\n=====******=======")
     
     def _save(active_client):
         collection = active_client.collections.get("PersonaMemory")
@@ -28,7 +28,7 @@ def save_persona_memory(
             vector=vector,
         )
         
-        logger.info(f"====\nSaved persona memory to Weaviate:====\n{text}")
+        print(f"====\nSaved persona memory to Weaviate:====\n{text}")
 
     if client:
         _save(client)

@@ -1,4 +1,6 @@
 from langgraph.graph import StateGraph
+
+from apps.chatbot.graph.nodes.web_search import web_search_node
 from .state import ChatState
 from .router import route_intent
 
@@ -19,6 +21,7 @@ graph.add_node("global", global_activities_node)
 graph.add_node("document", document_node)
 graph.add_node("direct", direct_qa_node)
 graph.add_node("final", final_llm_node)
+graph.add_node("web_search", web_search_node)
 
 graph.set_entry_point("router")
 
@@ -29,7 +32,7 @@ graph.add_conditional_edges(
         "direct": "direct",
         "recommendation": "persona",
         "document": "document",
-        "web": "persona",  # optional later
+        "web": "web_search",  # optional later
     },
 )
 
@@ -39,5 +42,6 @@ graph.add_edge("global", "final")
 
 graph.add_edge("document", "final")
 graph.add_edge("direct", "final")
+graph.add_edge("web_search", "final")
 
 chatbot_graph = graph.compile()

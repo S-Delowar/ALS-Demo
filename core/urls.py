@@ -18,7 +18,7 @@ urlpatterns = [
     path("api/chat/", include("apps.chat.api.urls")),
     path("api/documents/", include("apps.documents.api.urls")),
     # Recommendation Endpoints
-    # path('api/v1/recommendations/', include('apps.recommendations.urls')),
+    path('api/recommendations/', include('apps.recommendations.urls')),
 
     # Documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

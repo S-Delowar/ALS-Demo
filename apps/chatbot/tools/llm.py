@@ -3,6 +3,8 @@ import logging
 from google import genai
 from google.genai import types
 
+from apps.chatbot.prompts.system import CORE_SYSTEM_INSTRUCTION
+
 logger = logging.getLogger(__name__)
 
 GEMINI_MODEL = "gemini-2.5-flash"
@@ -57,11 +59,11 @@ def llm_generate(message: str, history: list = None) -> str:
         ))
         
     print("==========***************===========***********==========")
-    logger.info(f"Generating LLM response for message: {message}")
+    print(f"Generating LLM response for message: {message}")
     print("==========***************===========***********==========")
-    logger.info(f"With history: {history}")
+    print(f"With history: {history}")
     print("==========***************===========***********==========")
-    logger.info(f"Contents sent to LLM: {contents}")
+    print(f"Contents sent to LLM: {contents}")
     print("==========***************===========***********==========")
     
 
@@ -69,8 +71,9 @@ def llm_generate(message: str, history: list = None) -> str:
         model=GEMINI_MODEL,
         contents=contents,
         config=types.GenerateContentConfig(
-        max_output_tokens=50,  # <--- LIMITS THE OUTPUT LENGTH
-        temperature=0.7
+        max_output_tokens=1024,  # <--- LIMITS THE OUTPUT LENGTH
+        temperature=0.3,
+        system_instruction=CORE_SYSTEM_INSTRUCTION
     )
     )
     return response.text

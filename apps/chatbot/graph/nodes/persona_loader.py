@@ -3,6 +3,8 @@ from apps.persona.models import UserPersona
 
 
 def persona_loader(state: ChatState) -> ChatState:
+    
+    print("======*********** Persona Loader Node Called **************======")
     persona = UserPersona.objects.get(user_id=state["user_id"])
 
     state["persona"] = {

@@ -7,6 +7,9 @@ from apps.memory.weaviate_client import get_weaviate_client
 weaviate_client = get_weaviate_client()
 
 def global_activities_node(state: ChatState) -> ChatState:
+    
+    print("======*********** Global Activities Node Called **************======")
+    
     persona = UserPersona.objects.get(user_id=state["user_id"])
 
     if persona.profession:

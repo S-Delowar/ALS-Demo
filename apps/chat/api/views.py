@@ -117,5 +117,17 @@ class ChatbotAPIView(APIView):
             role="ai",
             content=final_answer,
         )
+        
+        # 🔥 Auto-title logic (only once)
+        if session.title == "New chat":
+            session.title = message_content[:60]  # safe truncation
+            session.save(update_fields=["title"])
+
+        # Background Task
+        # Check Persona Trigger
+        check_and_trigger_persona_update(
+            session=session, 
+            user=request.user
+        )
 
         return Response({"answer": final_answer})

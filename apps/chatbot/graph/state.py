@@ -13,3 +13,4 @@ class ChatState(TypedDict):
     persona_memory: NotRequired[List[str]]
     global_activities: NotRequired[List[str]]
     documents: NotRequired[List[str]]
+    web_results: NotRequired[List[str]]
