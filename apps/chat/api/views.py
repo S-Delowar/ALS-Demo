@@ -12,11 +12,25 @@ from .serializers import ChatSessionSerializer, ChatMessageSerializer
 class CreateChatSessionView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        """List chat sessions for the current user."""
+        sessions = ChatSession.objects.filter(user=request.user).order_by("-updated_at")
+        return Response(ChatSessionSerializer(sessions, many=True).data)
+
     def post(self, request):
         session = ChatSession.objects.create(
             user=request.user,
         )
         return Response(ChatSessionSerializer(session).data)
+
+
+class ChatSessionDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, session_id):
+        session = get_object_or_404(ChatSession, id=session_id, user=request.user)
+        session.delete()
+        return Response(status=204)
 
 
 class SendMessageView(APIView):
