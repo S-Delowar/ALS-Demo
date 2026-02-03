@@ -1,21 +1,27 @@
-from duckduckgo_search import DDGS
+import os
+
+from google import genai
+from google.genai import types
+
 from apps.chatbot.graph.state import ChatState
+
+client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+grounding_tool = types.Tool(google_search=types.GoogleSearch())
+
 
 def web_search_node(state: ChatState) -> ChatState:
     query = state["message"]
-    print(f"--- EXECUTING WEB SEARCH FOR: {query} ---")
-    
+    print(f"--- EXECUTING WEB SEARCH (GEMINI) FOR: {query} ---")
+
     try:
-        results = []
-        with DDGS() as ddgs:
-            # Get top 5 results
-            search_results = list(ddgs.text(query, max_results=5))
-            
-            for r in search_results:
-                results.append(f"Title: {r['title']}\nLink: {r['href']}\nSnippet: {r['body']}")
-                
-        state["web_results"] = results
-        
+        config = types.GenerateContentConfig(tools=[grounding_tool])
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=query,
+            config=config,
+        )
+        text = response.text if response.text else "No results found."
+        state["web_results"] = [text]
     except Exception as e:
         print(f"Web Search Error: {e}")
         state["web_results"] = ["Error performing web search."]
