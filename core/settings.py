@@ -18,7 +18,8 @@ SECRET_KEY = 'django-insecure-s9v-4zcf^mffb3^m_&#8x@^%n@^8tq!+-%ngvmar__#oest-sf
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+# ALLOWED_HOSTS = ["http://172.16.7.32:8000"]
+ALLOWED_HOSTS = ['172.16.7.32', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -51,6 +52,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    # "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -133,7 +135,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
+# STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -164,17 +168,25 @@ SIMPLE_JWT = {
 }
 
 # CORS
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",    
-    "http://127.0.0.1:3000",
-]
+CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOWED_ORIGINS = ["*"]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",    
+#     "http://127.0.0.1:3000",
+    
+# ]
 
 # CSRF_TRUSTED_ORIGINS MUST include the 'https://'
-CSRF_TRUSTED_ORIGINS = os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "http://localhost,http://127.0.0.1").split(",")
-
+# CSRF_TRUSTED_ORIGINS = os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "http://localhost,http://127.0.0.1").split(",")
+CSRF_TRUSTED_ORIGINS = [
+    'http://172.16.7.32:8000',  # Trust requests made to your backend IP
+    'http://172.16.7.4:3000', # (Optional) If you know the specific IP/Port of the Frontend laptop
+]
 
 # background task settings
-CELERY_BROKER_URL = os.getenv("REDIS_URL")
+# CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://127.0.0.1:6379/0")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://127.0.0.1:6379/0")
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 
@@ -184,4 +196,4 @@ CELERY_CACHE_BACKEND = "django-cache"
 CELERY_TIMEZONE = "Asia/Dhaka"
 
 # Weaviate settings
-WEAVIATE_URL = os.getenv("WEAVIATE_URL", "http://localhost:8080")
+WEAVIATE_URL = os.getenv("WEAVIATE_URL")

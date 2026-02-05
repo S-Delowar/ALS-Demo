@@ -6,14 +6,15 @@ from .models import UserPersona
 class UserPersonaAdmin(admin.ModelAdmin):
     list_display = (
         "id",
-        "user",
+        "get_email",      # Custom method to show email
+        "full_name",      # Added full_name
         "profession",
         "level",
         "created_at",
     )
 
     search_fields = (
-        "user__username",
+        "full_name",      # Added searching by name
         "user__email",
         "profession",
         "level",
@@ -25,8 +26,8 @@ class UserPersonaAdmin(admin.ModelAdmin):
     )
 
     fieldsets = (
-        ("User", {
-            "fields": ("user",),
+        ("User Information", {
+            "fields": ("user", "full_name"), # Grouped name with user
         }),
         ("Persona Details", {
             "fields": ("profession", "level"),
@@ -38,3 +39,8 @@ class UserPersonaAdmin(admin.ModelAdmin):
             "fields": ("created_at", "updated_at"),
         }),
     )
+
+    # Helper method to display user email in the list view
+    @admin.display(ordering='user__email', description='Email')
+    def get_email(self, obj):
+        return obj.user.email
