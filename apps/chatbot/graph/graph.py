@@ -35,7 +35,6 @@ graph.add_conditional_edges(
         "web": "web_search",  # optional later
     },
 )
-
 graph.add_edge("persona", "persona_memory")
 graph.add_edge("persona_memory", "global")
 graph.add_edge("global", "final")

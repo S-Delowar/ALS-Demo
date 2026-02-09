@@ -1,109 +1,13 @@
-version: "3.9"
-
-services:
-  weaviate:
-    image: semitechnologies/weaviate:latest
-    container_name: weaviate
-    ports:
-      - "8080:8080"
-      - "50051:50051"
-    environment:
-      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
-      PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
-      DEFAULT_VECTORIZER_MODULE: "none"
-      ENABLE_MODULES: ""
-      CLUSTER_HOSTNAME: "node1"
-    volumes:
-      - weaviate_data:/var/lib/weaviate
-    restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    container_name: redis
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
-
-  # postgres:
-  #   image: postgres:15-alpine
-  #   container_name: postgres
-  #   ports:
-  #     - "5432:5432"
-  #   environment:
-  #     POSTGRES_USER: myuser          # Change to your desired username
-  #     POSTGRES_PASSWORD: mypassword  # Change to your desired password
-  #     POSTGRES_DB: mydatabase        # Change to your desired default DB name
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   restart: unless-stopped
-
-volumes:
-  weaviate_data:
-  # postgres_data:
-
-
-
 # version: "3.9"
 
 # services:
-#   # --- Django Web Application ---
-#   web:
-#     build: .
-#     container_name: django_web
-#     # command: /app/start.sh  <-- REMOVED (Uses Dockerfile default)
-#     volumes:
-#       - .:/app
-#     ports:
-#       - "8000:8000"
-#     env_file:
-#       - .env  # Loads variables from your file
-#     depends_on:
-#       - postgres
-#       - redis
-#       - weaviate
-#     restart: unless-stopped
-
-#   # --- Celery Worker ---
-#   celery:
-#     build: .
-#     container_name: django_celery
-#     # Override start.sh: Run standard Linux celery worker
-#     command: celery -A core worker --loglevel=info
-#     volumes:
-#       - .:/app
-#     env_file:
-#       - .env  # Shares the same env file as web
-#     depends_on:
-#       - redis
-#       - postgres
-#       - web
-#     restart: unless-stopped
-
-#   # --- Database (PostgreSQL) ---
-#   postgres:
-#     image: postgres:15-alpine
-#     container_name: postgres
-#     ports:
-#       - "5432:5432"
-#     environment:
-#       POSTGRES_USER: postgres
-#       POSTGRES_PASSWORD: postgres
-#       POSTGRES_DB: postgres
-#     volumes:
-#       - postgres_data:/var/lib/postgresql/data
-#     restart: unless-stopped
-
-#   # --- Vector Database (Weaviate) ---
 #   weaviate:
 #     image: semitechnologies/weaviate:latest
 #     container_name: weaviate
 #     ports:
 #       - "8080:8080"
 #       - "50051:50051"
-#     env_file:
-#       - .env
 #     environment:
-#       # Specific Weaviate settings can stay here or move to .env
 #       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
 #       PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
 #       DEFAULT_VECTORIZER_MODULE: "none"
@@ -113,7 +17,6 @@ volumes:
 #       - weaviate_data:/var/lib/weaviate
 #     restart: unless-stopped
 
-#   # --- Message Broker (Redis) ---
 #   redis:
 #     image: redis:7-alpine
 #     container_name: redis
@@ -121,6 +24,104 @@ volumes:
 #       - "6379:6379"
 #     restart: unless-stopped
 
+#   # postgres:
+#   #   image: postgres:15-alpine
+#   #   container_name: postgres
+#   #   ports:
+#   #     - "5432:5432"
+#   #   environment:
+#   #     POSTGRES_USER: myuser          # Change to your desired username
+#   #     POSTGRES_PASSWORD: mypassword  # Change to your desired password
+#   #     POSTGRES_DB: mydatabase        # Change to your desired default DB name
+#   #   volumes:
+#   #     - postgres_data:/var/lib/postgresql/data
+#   #   restart: unless-stopped
+
 # volumes:
 #   weaviate_data:
-#   postgres_data:
+#   # postgres_data:
+
+
+
+version: "3.9"
+
+services:
+  # --- Django Web Application ---
+  web:
+    build: .
+    image: ai-learning-django:latest
+    container_name: django_web
+    # command: /app/start.sh  <-- REMOVED (Uses Dockerfile default)
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env  # Loads variables from your file
+    depends_on:
+      - postgres
+      - redis
+      - weaviate
+    restart: unless-stopped
+
+  # --- Celery Worker ---
+  celery:
+    image: ai-learning-django:latest
+    container_name: django_celery
+    # Override start.sh: Run standard Linux celery worker
+    command: celery -A core worker --loglevel=info
+    volumes:
+      - .:/app
+    env_file:
+      - .env  # Shares the same env file as web
+    depends_on:
+      - redis
+      - postgres
+      - web
+    restart: unless-stopped
+
+  # --- Database (PostgreSQL) ---
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # --- Vector Database (Weaviate) ---
+  weaviate:
+    image: semitechnologies/weaviate:latest
+    container_name: weaviate
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    env_file:
+      - .env
+    environment:
+      # Specific Weaviate settings can stay here or move to .env
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+      DEFAULT_VECTORIZER_MODULE: "none"
+      ENABLE_MODULES: ""
+      CLUSTER_HOSTNAME: "node1"
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    restart: unless-stopped
+
+  # --- Message Broker (Redis) ---
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  weaviate_data:
+  postgres_data:

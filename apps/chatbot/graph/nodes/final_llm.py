@@ -13,6 +13,7 @@ def final_llm_node(state: ChatState) -> ChatState:
         
         # Check if it's a Django model object (has attributes) or a dict (has keys)
         # We access attributes safely based on your UserPersona model
+        name = getattr(p, "name", None) or p.get("name", "Unknown")
         profession = getattr(p, "profession", None) or p.get("profession", "Unknown")
         level = getattr(p, "level", None) or p.get("level", "Unknown")
         
@@ -24,6 +25,7 @@ def final_llm_node(state: ChatState) -> ChatState:
             prefs_str = str(prefs)
 
         persona_str = (
+            f"NAME: {name}"
             f"PROFESSION: {profession}\n"
             f"EXPERIENCE LEVEL: {level}\n"
             f"EXPLICIT PREFERENCES: {prefs_str}"

@@ -7,7 +7,7 @@ def create_schema():
         if not client.collections.exists("GlobalActivities"):
             client.collections.create(
                 name="GlobalActivities",
-                vector_config=wvc.Configure.Vectorizer.none(),
+                vectorizer_config=wvc.Configure.Vectorizer.none(),
                 properties=[
                     wvc.Property(name="text", data_type=wvc.DataType.TEXT),
                     wvc.Property(name="profession", data_type=wvc.DataType.TEXT),
@@ -19,7 +19,7 @@ def create_schema():
         if not client.collections.exists("PersonaMemory"):
             client.collections.create(
                 name="PersonaMemory",
-                vector_config=wvc.Configure.Vectorizer.none(),
+                vectorizer_config=wvc.Configure.Vectorizer.none(),
                 properties=[
                     wvc.Property(name="text", data_type=wvc.DataType.TEXT),
                     wvc.Property(name="user_id", data_type=wvc.DataType.INT),
@@ -32,7 +32,7 @@ def create_schema():
         if not client.collections.exists("UserDocuments"):
             client.collections.create(
                 name="UserDocuments",
-                vector_config=wvc.Configure.Vectorizer.none(),
+                vectorizer_config=wvc.Configure.Vectorizer.none(),
                 properties=[
                     wvc.Property(name="text", data_type=wvc.DataType.TEXT),
                     wvc.Property(name="user_id", data_type=wvc.DataType.INT),

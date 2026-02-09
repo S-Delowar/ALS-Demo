@@ -11,7 +11,8 @@ def save_document_chunk(
     document_id: int,
     session_id: int | None,
 ):
-    vector = embed_text(text)
+    vector = embed_text(text, task_type="RETRIEVAL_DOCUMENT")
+    
     collection = client.collections.get("UserDocuments")
 
     collection.data.insert(
@@ -29,12 +30,13 @@ def search_user_documents(
     query: str,
     user_id: int,
     session_id: int | None = None,
-    limit: int = 4,
+    limit: int = 3,
     client = None # Optional: pass client if already open
 ):
     # Helper to run the logic
     def _search(active_client):
-        vector = embed_text(query)
+        vector = embed_text(query, task_type="RETRIEVAL_QUERY")
+        
         collection = active_client.collections.get("UserDocuments")
 
         # Build Filters

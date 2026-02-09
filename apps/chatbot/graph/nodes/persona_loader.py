@@ -8,6 +8,7 @@ def persona_loader(state: ChatState) -> ChatState:
     persona = UserPersona.objects.get(user_id=state["user_id"])
 
     state["persona"] = {
+        "name": persona.full_name,
         "profession": persona.profession,
         "level": persona.level,
         "preferences": persona.preferences,

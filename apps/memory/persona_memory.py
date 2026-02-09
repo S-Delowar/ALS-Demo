@@ -12,7 +12,7 @@ def save_persona_memory(
     memory_type: str,
     client = None 
 ):
-    vector = embed_text(text)
+    vector = embed_text(text, task_type="RETRIEVAL_DOCUMENT")
     
     print("=====******\n====Text Embedding done, saving to Weaviate...\n=====******=======")
     
@@ -44,7 +44,8 @@ def search_persona_memory(
     client = None
 ):
     def _search(active_client):
-        vector = embed_text(query)
+        vector = embed_text(query, task_type="RETRIEVAL_QUERY")
+        
         collection = active_client.collections.get("PersonaMemory")
 
         result = collection.query.near_vector(
