@@ -1,15 +1,29 @@
-### Run
-#### Run docker-compose (vector db + redis)
-```docker-compose up```
-#### venv =>
-```pip install -r requirements.txt```
+# ALS-Demo
 
-```python manage.py makemigrations```
+A Django-based AI Learning System containerized with Docker.
 
-```python manage.py migrate```
-### run celery
-```celery -A core worker -l info --pool=solo```     #if windows
+## Prerequisites
 
-```celery -A core worker -l info```  #if linux/mac
-### run server
-```python manage.py runserver```
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) (includes Docker Compose)
+- Git
+
+## Getting Started
+
+Follow these steps to get the project up and running on your local machine.
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/S-Delowar/ALS-Demo.git
+cd ALS-Demo
+```
+### 2. Configure Environment Variables
+Create a .env file in the root directory.
+
+### 3. Build and Run
+Build the Docker images and start the containers.
+
+```bash
+docker-compose build
+docker-compose up
+```
