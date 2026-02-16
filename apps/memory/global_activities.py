@@ -3,8 +3,7 @@ from weaviate.classes.query import Filter
 from apps.memory.embeddings import embed_text
 from apps.memory.weaviate_client import get_weaviate_client
 
-weaviate_client = get_weaviate_client()
-
+# Save Global Activities of a Profession to Vector DB
 def save_global_activity(
     text: str, 
     profession: str, 
@@ -31,7 +30,7 @@ def save_global_activity(
             _save(local_client)
             
             
-
+# Check global activities exist for a profession or not in the Vector DB
 def activities_exist_for_profession(profession: str) -> bool:
     """
     Checks if activities exist using Weaviate V4 syntax
@@ -54,7 +53,7 @@ def activities_exist_for_profession(profession: str) -> bool:
 def search_global_activities(
     query: str,
     profession: str,
-    client=weaviate_client,
+    client=None,
     limit: int = 3,
 ):
     """
@@ -64,7 +63,7 @@ def search_global_activities(
     def _search(active_client):
         query_vector = embed_text(query, task_type="RETRIEVAL_QUERY")
         
-        collection = active_client.collections.get("PersonaMemory")
+        collection = active_client.collections.get("GlobalActivities")
 
         result = collection.query.near_vector(
             near_vector=query_vector,

@@ -13,17 +13,26 @@ def save_document_chunk(
 ):
     vector = embed_text(text, task_type="RETRIEVAL_DOCUMENT")
     
-    collection = client.collections.get("UserDocuments")
+    def _save(active_client):
+        collection = active_client.collections.get("UserDocuments")
+        collection.data.insert(
+            properties={
+                "text": text,
+                "user_id": user_id,
+                "document_id": document_id,
+                "session_id": session_id or -1,
+            },
+            vector=vector,
+        )
+        
+        print(f"====\nSaved document chunk to Weaviate:====\n{text}")
 
-    collection.data.insert(
-        properties={
-            "text": text,
-            "user_id": user_id,
-            "document_id": document_id,
-            "session_id": session_id or -1,
-        },
-        vector=vector,
-    )
+    if client:
+        _save(client)
+    else:
+        with get_weaviate_client() as local_client:
+            _save(local_client)
+
 
 # Retrieve document chunks
 def search_user_documents(
