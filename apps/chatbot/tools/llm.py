@@ -11,6 +11,8 @@ GEMINI_MODEL = "gemini-2.5-flash"
 
 client = genai.Client()
 
+grounding_tool = types.Tool(google_search=types.GoogleSearch())
+
 
 def llm_json_generate(prompt: str) -> dict:
     """
@@ -34,10 +36,10 @@ def llm_json_generate(prompt: str) -> dict:
     
     
     
-def llm_generate(message: str, history: list = None) -> str:
+def llm_generate(message: str, history: list = None, custom_system_instruction: str = None) -> str:
     contents = []
     
-    # 1. Convert History
+    # Convert History
     if history:
         for msg in history:
             contents.append(types.Content(
@@ -57,23 +59,18 @@ def llm_generate(message: str, history: list = None) -> str:
             role="user",
             parts=[types.Part.from_text(text=message)]
         ))
-        
-    print("==========***************===========***********==========")
-    print(f"Generating LLM response for message: {message}")
-    print("==========***************===========***********==========")
-    print(f"With history: {history}")
-    print("==========***************===========***********==========")
-    print(f"Contents sent to LLM: {contents}")
-    print("==========***************===========***********==========")
-    
 
+    # decide the system instruction to use
+    final_instruction = custom_system_instruction if custom_system_instruction else CORE_SYSTEM_INSTRUCTION
+    
     response = client.models.generate_content(
         model=GEMINI_MODEL,
         contents=contents,
         config=types.GenerateContentConfig(
-        max_output_tokens=1024,  # <--- LIMITS THE OUTPUT LENGTH
-        temperature=0.3,
-        system_instruction=CORE_SYSTEM_INSTRUCTION
-    )
+            tools=[grounding_tool],
+            max_output_tokens=1024,  # <--- LIMITS THE OUTPUT LENGTH
+            temperature=0.3,
+            system_instruction=final_instruction
+        )
     )
     return response.text

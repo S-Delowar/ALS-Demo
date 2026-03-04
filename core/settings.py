@@ -8,18 +8,13 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-s9v-4zcf^mffb3^m_&#8x@^%n@^8tq!+-%ngvmar__#oest-sf'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# ALLOWED_HOSTS = ["http://172.16.7.32:8000"]
-ALLOWED_HOSTS = ['172.16.7.32', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['172.16.7.32','192.168.97.118', 'localhost', '127.0.0.1', '0.0.0.0', '*']
 
 
 # Application definition
@@ -47,6 +42,7 @@ INSTALLED_APPS = [
     'apps.documents',
     'apps.chatbot',
     'apps.recommendations',
+    'apps.user_profile',
 ]
 
 MIDDLEWARE = [
@@ -118,9 +114,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 
 # TIME_ZONE = 'UTC'
@@ -131,9 +124,6 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
@@ -142,8 +132,6 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -169,21 +157,19 @@ SIMPLE_JWT = {
 
 # CORS
 CORS_ALLOW_ALL_ORIGINS = True
-# CORS_ALLOWED_ORIGINS = ["*"]
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",    
-#     "http://127.0.0.1:3000",
-# ]
 
-# CSRF_TRUSTED_ORIGINS MUST include the 'https://'
-# CSRF_TRUSTED_ORIGINS = os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "http://localhost,http://127.0.0.1").split(",")
 CSRF_TRUSTED_ORIGINS = [
-    'http://172.16.7.32:8000',  # Trust requests made to your backend IP
-    'http://172.16.7.4:3000', # (Optional) If you know the specific IP/Port of the Frontend laptop
+    'http://192.168.97.118:8000',
+    'http://172.16.7.32:8000',  # Your laptop's local IP
+    'http://172.16.7.4:3000',   # Your team member's IP (if applicable)
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'http://0.0.0.0:8000',
 ]
 
+# CELERY
+from celery.schedules import crontab
 # background task settings
-# CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://127.0.0.1:6379/0")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://127.0.0.1:6379/0")
 CELERY_ACCEPT_CONTENT = ["json"]
@@ -194,5 +180,15 @@ CELERY_CACHE_BACKEND = "django-cache"
 
 CELERY_TIMEZONE = "Asia/Dhaka"
 
+# Add the beat schedule here:
+CELERY_BEAT_SCHEDULE = {
+    'daily-morning-recommendations': {
+        'task': 'core.tasks.trigger_daily_recommendations',
+        'schedule': crontab(hour=8, minute=0), # Runs at 8:00 AM Asia/Dhaka time
+    },
+}
+
 # Weaviate settings
 WEAVIATE_URL = os.getenv("WEAVIATE_URL")
+
+

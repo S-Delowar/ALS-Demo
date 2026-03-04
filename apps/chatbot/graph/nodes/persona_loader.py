@@ -14,4 +14,7 @@ def persona_loader(state: ChatState) -> ChatState:
         "preferences": persona.preferences,
     }
 
+    print(f"Output state of Persona Loader Node: \n\n{state}")
+    print("\n\n====*****End of Persona Loader Node*****=======")
+    
     return state

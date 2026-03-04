@@ -12,5 +12,7 @@ class ChatState(TypedDict):
     persona: NotRequired[Optional[dict]]
     persona_memory: NotRequired[List[str]]
     global_activities: NotRequired[List[str]]
-    documents: NotRequired[List[str]]
     web_results: NotRequired[List[str]]
+    # documents: NotRequired[List[str]]
+    local_file_paths: NotRequired[List[str]]
+    file_search_store_name: NotRequired[Optional[str]]

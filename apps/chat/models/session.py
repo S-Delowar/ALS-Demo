@@ -12,6 +12,14 @@ class ChatSession(models.Model):
     title = models.CharField(max_length=255, default="New chat")
     is_active = models.BooleanField(default=True)
 
+    # Stores the Gemini RAG store ID (e.g., 'fileSearchStores/my-store-123')
+    file_search_store_name = models.CharField(
+        max_length=255, 
+        blank=True, 
+        null=True,
+        help_text="Google Gemini File Search Store ID for this session"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

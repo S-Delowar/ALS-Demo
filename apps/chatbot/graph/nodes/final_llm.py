@@ -4,6 +4,8 @@ from apps.chatbot.tools.llm import llm_generate
 from apps.chatbot.prompts.system import CORE_SYSTEM_INSTRUCTION
 
 def final_llm_node(state: ChatState) -> ChatState:
+    
+    print("======*********** Final LLM Node Called **************======")
     context_blocks = []
 
     # 1. Handle User Persona (Django Model or Dict)
@@ -93,4 +95,7 @@ def final_llm_node(state: ChatState) -> ChatState:
         # system_instruction=CORE_SYSTEM_INSTRUCTION
     )
 
+    print(f"Output state of Final LLM Node: \n\n{state}")
+    print("\n\n====*****End of Final LLM Node*****=======")
+    
     return state

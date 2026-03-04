@@ -6,7 +6,10 @@ import threading
 from rest_framework.views import APIView
 
 from apps.chat.models.message import ChatMessage
+from apps.recommendations.services.context import get_topics_plan
 from apps.recommendations.services.pipeline import run_recommendation_pipeline
+from apps.recommendations.services.pipeline_02 import recommend_articles, recommend_books, recommend_courses, recommend_videos, run_full_pipeline
+from apps.recommendations.tasks import generate_recommendation_for_user
 
 from .models import Article, Course, Video, Book
 from .serializers import ArticleSerializer, CourseSerializer, VideoSerializer, BookSerializer
@@ -48,41 +51,6 @@ class BookViewSet(ReadOnlyViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     
-    
-# ================================
-# Generate Recommendations View
-# ================================
-# class GenerateRecommendationsView(APIView):
-#     permission_classes = [permissions.IsAuthenticated]
-
-#     def post(self, request):
-#         """
-#         Triggers the recommendation engine.
-#         Body parameters (optional if data exists in DB):
-#         - profession: "Backend Developer" (overrides profile)
-#         - chat_history: ["how to fix cors?", "django middleware"] (overrides DB history)
-#         """
-#         user = request.user
-        
-#         profession = user.profession
-        
-#         chat_history = """- What is AWS SageMaker? How to deploy models on AWS?
-#                         - DO I need to learn Python for ML?"""
-
-#         try:
-#             summary = run_recommendation_pipeline(user, profession, chat_history)
-#             return Response(
-#                 {
-#                     "message": "Recommendations generated successfully.",
-#                     "summary": summary
-#                 },
-#                 status=status.HTTP_200_OK
-#             )
-#         except Exception as e:
-#             return Response(
-#                 {"error": str(e)},
-#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
-#             )
 
 
 class GenerateRecommendationsView(APIView):
@@ -130,3 +98,155 @@ class GenerateRecommendationsView(APIView):
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+
+# class GenerateRecommendationsView(APIView):
+#     permission_classes = [permissions.IsAuthenticated]
+
+#     def post(self, request):
+#         # Trigger the celery task asynchronously immediately
+#         generate_recommendation_for_user.delay(request.user.id)
+        
+#         return Response(
+#             {"message": "We are generating your recommendations in the background. Please check back in a few moments."},
+#             status=status.HTTP_202_ACCEPTED
+#         )
+        
+ 
+ 
+
+# class FullPipelineAPIView(APIView):
+#     def post(self, request):
+#         profession = request.data.get('profession', '')
+#         chat_history = request.data.get('chat_history', '')
+        
+#         summary = run_full_pipeline(request.user, profession, chat_history)
+#         return Response(summary, status=status.HTTP_201_CREATED)
+
+       
+        
+class BaseRecommendationView(APIView):
+    """Base class to handle context extraction for specific endpoints."""
+    
+    def get_topics(self, request):
+        user = request.user
+        profession = getattr(user, 'profession', 'General Learner')
+
+        # 1. Fetch User's Chat History (SQL)
+        # Filter for messages strictly from the user (not AI)
+        # Taking the last 10 to ensure context window isn't overloaded
+        recent_messages = ChatMessage.objects.filter(
+            session__user=user,  # <--- Spans relationship: Message -> Session -> User
+            role='user'
+        ).order_by('-created_at')[:10]
+
+        # Convert queryset to a single string for the pipeline
+        if recent_messages:
+            # Reverse to maintain chronological order in the prompt
+            chat_history_text = "\n".join(
+                [f"- {msg.content}" for msg in reversed(recent_messages)]
+            )
+        else:
+            chat_history_text = "No recent specific questions asked."
+            
+        # Call the LLM to get the plan
+        return get_topics_plan(request.user, profession, chat_history_text)
+
+
+
+class ArticleRecommendationAPIView(BaseRecommendationView):
+    def post(self, request):
+        topics_plan = self.get_topics(request)
+        
+        try:
+            # 2. Pass data to the orchestrator
+            summary = recommend_articles(request.user, topics_plan)
+            
+            print(f"Article recommendation summary: {summary}")
+            
+            return Response(
+                {
+                    "message": "Recommended articles generated successfully.",
+                    "summary": summary
+                },
+                status=status.HTTP_201_CREATED
+            )
+        except Exception as e:
+            # Log the error here in production
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+            
+
+class VideoRecommendationAPIView(BaseRecommendationView):
+    def post(self, request):
+        topics_plan = self.get_topics(request)
+        try:
+            # 2. Pass data to the orchestrator
+            summary = recommend_videos(request.user, topics_plan)
+            
+            print(f"Video recommendation summary: {summary}")
+            
+            return Response(
+                {
+                    "message": "Recommended videos generated successfully.",
+                    "summary": summary
+                },
+                status=status.HTTP_201_CREATED
+            )
+        except Exception as e:
+            # Log the error here in production
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class CourseRecommendationAPIView(BaseRecommendationView):
+    def post(self, request):
+        topics_plan = self.get_topics(request)
+        try:
+            # 2. Pass data to the orchestrator
+            summary = recommend_courses(request.user, topics_plan)
+            
+            print(f"Course recommendation summary: {summary}")
+            
+            return Response(
+                {
+                    "message": "Recommended courses generated successfully.",
+                    "summary": summary
+                },
+                status=status.HTTP_201_CREATED
+            )
+        except Exception as e:
+            # Log the error here in production
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class BookRecommendationAPIView(BaseRecommendationView):
+    def post(self, request):
+        topics_plan = self.get_topics(request)
+        try:
+            summary = recommend_books(request.user, topics_plan)
+            
+            print(f"Book recommendation summary: {summary}")
+            
+            return Response(
+                {
+                    "message": "Recommended books generated successfully.",
+                    "summary": summary
+                },
+                status=status.HTTP_201_CREATED
+            )
+        except Exception as e:
+            # Log the error here in production
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        

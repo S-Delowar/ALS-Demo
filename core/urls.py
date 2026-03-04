@@ -19,6 +19,7 @@ urlpatterns = [
     path("api/documents/", include("apps.documents.api.urls")),
     # Recommendation Endpoints
     path('api/recommendations/', include('apps.recommendations.urls')),
+    path('api/user-profile/', include('apps.user_profile.urls')),
 
     # Documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

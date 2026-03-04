@@ -59,8 +59,11 @@ def run_recommendation_pipeline(user, profession, chat_history):
         limit=3
     )
     # Format list of strings into a single string
-    global_activities_text = "\n".join(global_activities_data)
-
+    global_activities_text = "\n".join([
+        item.get('text', '') if isinstance(item, dict) else str(item) 
+        for item in global_activities_data
+    ])
+    
     # --- 3. Analyze Needs (LLM) ---
     topics_plan = analyze_user_needs(
         profession=profession, 

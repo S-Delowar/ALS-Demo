@@ -33,4 +33,4 @@ from apps.memory.schema import create_schema;
 create_schema()"
 
 echo "Starting Gunicorn..."
-gunicorn core.wsgi:application --bind 0.0.0.0:8000 --timeout 120
+gunicorn core.wsgi:application --bind 0.0.0.0:8000 --timeout 360

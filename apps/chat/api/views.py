@@ -3,6 +3,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from django.core.files.storage import FileSystemStorage
+
 
 from apps.chat.models import ChatSession, ChatMessage
 from apps.persona.services import check_and_trigger_persona_update
@@ -90,42 +93,64 @@ from apps.chatbot.graph.graph import chatbot_graph
 
 class ChatbotAPIView(APIView):
     permission_classes = [IsAuthenticated]
-
+    # Accept multipart form data 
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    
     def post(self, request, session_id):
-        # 1. Retrieve the session securely
         session = get_object_or_404(ChatSession, id=session_id, user=request.user)
         message_content = request.data.get("message")
 
         if not message_content:
             return Response({"error": "Message content is required"}, status=400)
 
-        # 2. Save User Message to DB
+        # Extracts and temporarily save uploaded files
+        uploaded_files = request.FILES.getlist("files")
+        local_file_paths = []
+        
+        if uploaded_files:
+            fs = FileSystemStorage(location="temp/chat_uploads/")
+            for f in uploaded_files:
+                filename = fs.save(f.name, f)
+                local_file_paths.append(fs.path(filename))
+
+        # Save User Message to DB
         ChatMessage.objects.create(
             session=session,
             role="user",
             content=message_content,
         )
 
-        # 3. Fetch History (Includes the message just created)
+        # Fetch History (Includes the message just created)
         # We fetch the last 10 messages to keep context window efficient
         history_queryset = session.messages.order_by("-created_at")[:10]
         history = list(history_queryset.values("role", "content"))[::-1]  #Reverse - oldest first
 
-        # 4. Prepare State for LangGraph/StateGraph
+
+        store_name = session.file_search_store_name
+
+        # Prepare State for LangGraph/StateGraph
         state = {
             "user_id": request.user.id,
             "session_id": session.id,
             "message": message_content,
             "history": history,
             "intent": "",       # specific keys required by your ChatState
-            "final_answer": None
+            "final_answer": None,
+            "local_file_paths": local_file_paths,
+            "file_search_store_name": store_name
         }
 
-        # 5. Invoke the Graph
+        # Invoke the Graph
         result = chatbot_graph.invoke(state)
         final_answer = result.get("final_answer", "No response generated.")
+        
+        # After graph execution, if a new store was created, save it to the DB session
+        new_store_name = result.get("file_search_store_name")
+        if new_store_name and session.file_search_store_name != new_store_name:
+            session.file_search_store_name = new_store_name
+            session.save(update_fields=["file_search_store_name"])
 
-        # 6. Save Assistant Response to DB
+        # Save Assistant Response to DB
         ChatMessage.objects.create(
             session=session,
             role="ai",

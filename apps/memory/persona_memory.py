@@ -44,12 +44,15 @@ def search_persona_memory(
     client = None
 ):
     def _search(active_client):
-        vector = embed_text(query, task_type="RETRIEVAL_QUERY")
+        query_vector = embed_text(query, task_type="RETRIEVAL_QUERY")
+        
+        if isinstance(query_vector[0], list):
+            query_vector = query_vector[0]
         
         collection = active_client.collections.get("PersonaMemory")
 
         result = collection.query.near_vector(
-            near_vector=vector,
+            near_vector=query_vector,
             limit=limit,
             filters=Filter.by_property("user_id").equal(user_id),
             return_properties=["text", "confidence", "type"]

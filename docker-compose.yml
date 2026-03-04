@@ -59,6 +59,7 @@ services:
     env_file:
       - .env
     environment:
+      LOG_LEVEL: "warning"
       # Specific Weaviate settings can stay here or move to .env
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
       PERSISTENCE_DATA_PATH: "/var/lib/weaviate"

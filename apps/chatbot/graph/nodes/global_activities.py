@@ -22,4 +22,7 @@ def global_activities_node(state: ChatState) -> ChatState:
     else:
         state["global_activities"] = []
 
+    print(f"Output state of Global Activities Node: \n\n{state}")
+    print("\n\n====*****End of Global Activities Node*****=======")
+    
     return state

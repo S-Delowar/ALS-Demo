@@ -38,9 +38,16 @@ duckduckgo-search==8.1.1
 ddgs==9.10.0
 # playwright==1.58.0
 
-
+pydantic
+langchain-google-genai
 
 whitenoise==6.11.0
+langsmith==0.7.6
+tavily-python==0.7.21
+
+
+python-dateutil
+PyMuPDF==1.27.1
 
 
 

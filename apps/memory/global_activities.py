@@ -63,6 +63,9 @@ def search_global_activities(
     def _search(active_client):
         query_vector = embed_text(query, task_type="RETRIEVAL_QUERY")
         
+        if isinstance(query_vector[0], list):
+            query_vector = query_vector[0]
+            
         collection = active_client.collections.get("GlobalActivities")
 
         result = collection.query.near_vector(
