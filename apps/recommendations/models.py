@@ -9,12 +9,21 @@ class BaseContent(models.Model):
     thumbnail = models.TextField(blank=True, null=True)
     platform = models.CharField(max_length=150, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_saved = models.BooleanField(default=False, db_index=True)
 
     class Meta:
         abstract = True
 
     def __str__(self):
         return self.title
+    
+    @property
+    def content_type(self):
+        """Returns the lowercase name of the child class (e.g., 'article', 'video')."""
+        return self.__class__.__name__.lower()
+
+
+# Specific content types inherit from BaseContent
 
 class Article(BaseContent):
     author = models.CharField(max_length=255, blank=True, null=True)

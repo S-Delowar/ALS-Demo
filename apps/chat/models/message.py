@@ -21,7 +21,7 @@ class ChatMessage(models.Model):
     # for intent, tools_used, etc (later)
     metadata = models.JSONField(default=dict, blank=True, null=True)
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         ordering = ["created_at"]

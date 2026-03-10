@@ -8,31 +8,6 @@ from apps.recommendations.services.verifier import (
     verify_article, verify_video, verify_course, verify_book
 )
 
-# def run_recommendation_pipeline(user, profession="", chat_history=""):
-    
-#     # 1. Analyze User Needs to Generate Topic Plans
-#     topics = analyze_user_needs(profession, chat_history)
-    
-#     print(f"=== Generated Topic Plans ===")
-#     print(topics)
-    
-#     results = []
-    
-#     for topic_plan in topics:
-#         topic = topic_plan['topic']
-#         print(f"\n=== Processing Topic: {topic} ===")
-        
-#         # 2. Search Content for Each Topic Plan
-#         search_results = search_content(topic_plan)
-        
-#         results.append(search_results)
-        
-#         print(f"--- Search Results for Topic: {topic} ---")
-#         print(search_results)
-    
-#     return results
-
-
 
 def run_recommendation_pipeline(user, profession, chat_history):
     

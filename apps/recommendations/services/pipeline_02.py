@@ -1,4 +1,5 @@
 # apps/recommendations/services/pipelines.py
+import concurrent.futures
 from duckduckgo_search import DDGS
 from apps.recommendations.models import Article, Course, Video, Book
 from apps.recommendations.services.scraper import fetch_page_data
@@ -120,18 +121,40 @@ def recommend_books(user, topics_plan):
                 pass
     return {"books_added": count}
 
-def run_full_pipeline(user, profession, chat_history):
-    """Executes the full monolith pipeline."""
+
+# Orchestrator function to run all recommendation tasks concurrently
+def run_full_recommendation_pipeline(user, profession, chat_history):
+    """Executes the full function-based pipeline concurrently."""
     topics_plan = get_topics_plan(user, profession, chat_history)
     
     summary = {
         "topics_analyzed": [t['topic'] for t in topics_plan]
     }
     
-    # Run all modular components
-    summary.update(recommend_articles(user, topics_plan))
-    summary.update(recommend_videos(user, topics_plan))
-    summary.update(recommend_courses(user, topics_plan))
-    summary.update(recommend_books(user, topics_plan))
+    # Define our independent I/O bound tasks
+    pipeline_tasks = [
+        recommend_articles,
+        recommend_videos,
+        recommend_courses,
+        recommend_books
+    ]
     
+    # Run the 4 main recommendation categories in parallel
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        # Map the tasks to the executor
+        future_to_task = {
+            executor.submit(task, user, topics_plan): task.__name__ 
+            for task in pipeline_tasks
+        }
+        
+        # Gather results as they complete
+        for future in concurrent.futures.as_completed(future_to_task):
+            task_name = future_to_task[future]
+            try:
+                result = future.result()
+                summary.update(result)
+            except Exception as e:
+                # Log the error, but don't crash the entire pipeline if one source fails
+                print(f"Pipeline component {task_name} failed: {e}")
+                
     return summary

@@ -1,15 +1,19 @@
 import json
 import logging
+import os
 from google import genai
 from google.genai import types
+from dotenv import load_dotenv
 
 from apps.chatbot.prompts.system import CORE_SYSTEM_INSTRUCTION
+
+load_dotenv()  # Load environment variables from .env file
 
 logger = logging.getLogger(__name__)
 
 GEMINI_MODEL = "gemini-2.5-flash"
 
-client = genai.Client()
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY_CHATBOT"))
 
 grounding_tool = types.Tool(google_search=types.GoogleSearch())
 
@@ -73,4 +77,6 @@ def llm_generate(message: str, history: list = None, custom_system_instruction: 
             system_instruction=final_instruction
         )
     )
+    
+    print(f"API Key Used for CHATBOT: {os.getenv('GEMINI_API_KEY_CHATBOT')}")
     return response.text

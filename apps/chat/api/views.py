@@ -8,7 +8,8 @@ from django.core.files.storage import FileSystemStorage
 
 
 from apps.chat.models import ChatSession, ChatMessage
-from apps.persona.services import check_and_trigger_persona_update
+from apps.persona.services import ChatProfilerTriggerService, check_and_trigger_persona_update
+from apps.user_profile.models import UserProfile
 from .serializers import ChatSessionSerializer, ChatMessageSerializer
 
 
@@ -163,10 +164,17 @@ class ChatbotAPIView(APIView):
             session.save(update_fields=["title"])
 
         # Background Task
-        # Check Persona Trigger
-        check_and_trigger_persona_update(
-            session=session, 
-            user=request.user
-        )
+        # # Check Persona Trigger
+        # check_and_trigger_persona_update(
+        #     session=session, 
+        #     user=request.user
+        # )
+        
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        profile.chat_message_count += 1
+        profile.save(update_fields=["chat_message_count"])
+
+        if profile.chat_message_count % 4 == 0:
+            ChatProfilerTriggerService.check_and_trigger(request.user)
 
         return Response({"answer": final_answer})

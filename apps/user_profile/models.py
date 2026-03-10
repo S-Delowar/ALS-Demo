@@ -3,7 +3,7 @@ from django.conf import settings
 
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
-    name = models.CharField(max_length=255, blank=True)
+    full_name = models.CharField(max_length=255, blank=True)
     profession = models.CharField(max_length=255, blank=True)
     possible_next_roles = models.JSONField(default=list, blank=True)
     total_experience_years = models.DecimalField(
@@ -18,9 +18,27 @@ class UserProfile(models.Model):
     resume_file = models.FileField(upload_to='resumes/%Y/%m/', null=True, blank=True)
     summary = models.TextField(blank=True)
     skills = models.JSONField(default=list, blank=True)
+    chat_message_count = models.IntegerField(
+        default=0, 
+        help_text="Tracks total user messages to trigger background profiler"
+    )
 
     def __str__(self):
-        return self.name or self.user.username
+        return self.full_name or self.user.username
+    
+    def save(self, *args, **kwargs):
+        # 1. Save the UserProfile to the database first
+        super().save(*args, **kwargs)
+
+        # 2. Sync the updated name and profession back to the User model.
+        # We use .update() here because it fires a direct SQL UPDATE query.
+        # If we used self.user.save(), it would trigger the post_save signal 
+        # again and cause an infinite loop.
+        User = self.user.__class__
+        User.objects.filter(id=self.user.id).update(
+            full_name=self.full_name,
+            profession=self.profession
+        )
 
 
 class Education(models.Model):
@@ -75,3 +93,35 @@ class SkillGap(models.Model):
 
     def __str__(self):
         return f"{self.skill_gap} ({self.profile.name})"
+    
+    
+# Model to capture user goals, preferences, and focus areas for personalized learning recommendations
+class LearningInsight(models.Model):
+    INSIGHT_TYPES = (
+        ('goal', 'Goal'),
+        ('preference', 'Preference'),
+        ('focus_area', 'Focus Area'),
+    )
+    
+    profile = models.ForeignKey(UserProfile, related_name='learning_insights', on_delete=models.CASCADE)
+    insight_type = models.CharField(max_length=20, choices=INSIGHT_TYPES)
+    # Kept short for mobile UI compatibility
+    content = models.CharField(max_length=300, help_text="Short text describing the user's goal, preference, or focus area")
+    reason = models.CharField(
+        max_length=500, 
+        null=True, 
+        blank=True, 
+        help_text="AI justification for this insight based on the user's chat history."
+    )
+    # Protects user edits from the background Celery task
+    is_manual = models.BooleanField(
+        default=False, 
+        help_text="True if the user added/edited this manually. Protects from AI overwrites."
+    )
+
+    class Meta:
+        # Prevents the exact same goal from appearing twice for the same user
+        unique_together = ('profile', 'insight_type', 'content')
+
+    def __str__(self):
+        return f"{self.get_insight_type_display()}: {self.content} ({self.profile.full_name})"

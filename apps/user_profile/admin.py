@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import UserProfile, Education, Experience, Project, Certification
+from .models import LearningInsight, SkillGap, UserProfile, Education, Experience, Project, Certification
 
 # --- Inlines for a nested UI ---
 
@@ -24,8 +24,8 @@ class CertificationInline(admin.TabularInline):
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
     # What you see in the main list view
-    list_display = ('name', 'profession', 'user', 'total_experience_years', 'phone')
-    search_fields = ('name', 'profession', 'skills', 'user__email', 'user__username')
+    list_display = ('full_name', 'profession', 'user', 'total_experience_years', 'phone')
+    search_fields = ('full_name', 'profession', 'skills', 'user__email', 'user__username')
     list_filter = ('profession', 'total_experience_years')
     
     # Read-only fields to prevent accidental tampering with AI-calculated data
@@ -34,7 +34,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     # Organizing the detail view with fieldsets
     fieldsets = (
         ('Basic Information', {
-            'fields': ('user', 'name', 'profession', 'summary', 'total_experience_years')
+            'fields': ('user', 'full_name', 'profession', 'summary', 'total_experience_years')
         }),
         ('Contact & Links', {
             'fields': ('phone', 'address', 'linkedin_url', 'resume_file')
@@ -57,3 +57,5 @@ admin.site.register(Education)
 admin.site.register(Experience)
 admin.site.register(Project)
 admin.site.register(Certification)
+admin.site.register(SkillGap)
+admin.site.register(LearningInsight)

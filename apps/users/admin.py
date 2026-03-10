@@ -8,17 +8,18 @@ class UserAdmin(BaseUserAdmin):
     ordering = ("email",)
     list_display = (
         "email",
+        "full_name",
         "profession",
         "is_active",
         "is_staff",
         "is_superuser",
     )
     list_filter = ("is_staff", "is_superuser", "is_active", "profession")
-    search_fields = ("email", "profession")
+    search_fields = ("email", "full_name", "profession")
 
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        ("Profile", {"fields": ("profession",)}),
+        ("Profile", {"fields": ("full_name", "profession")}),
         ("Permissions", {
             "fields": (
                 "is_active",
@@ -36,7 +37,7 @@ class UserAdmin(BaseUserAdmin):
             None,
             {
                 "classes": ("wide",),
-                "fields": ("email", "profession", "password1", "password2"),
+                "fields": ("email", "full_name", "profession", "password1", "password2"),
             },
         ),
     )

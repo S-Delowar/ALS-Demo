@@ -27,6 +27,5 @@ def get_topics_plan(user, profession, chat_history):
         global_activities=global_activities_text
     )
     
-    
     print(f"================================\n Generated topics plan for user {user.id} and profession {profession}:\n{topics_plan}")
     return topics_plan

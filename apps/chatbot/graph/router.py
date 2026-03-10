@@ -17,6 +17,8 @@
 
 
 
+import os
+
 from pydantic import BaseModel, Field
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -38,7 +40,7 @@ class RouteQuery(BaseModel):
     )
     
 # Initialize model for router.
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0, api_key=os.getenv("GEMINI_API_KEY_LANGGRAPH_ROUTER"))
 
 # Bind the pydantic model to force the llm to output our exact schema
 # Bind the Pydantic model to force the LLM to output our exact schema

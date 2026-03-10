@@ -67,7 +67,7 @@ def analyze_user_needs(profession, chat_history, persona, global_activities) -> 
     2. PERSONA (User's specific background/goals):
     {persona if persona else "No specific persona data available."}
 
-    3. RECENT QUESTIONS (User's direct queries):
+    3. RECENT QUESTIONS (User's direct queries):9
     {chat_history}
 
     4. GLOBAL TRENDS (What others in this profession are doing):
@@ -114,3 +114,6 @@ def analyze_user_needs(profession, chat_history, persona, global_activities) -> 
         print("ERROR: Failed to parse JSON from LLM")
         print("Raw response:", response.text)
         return []
+    
+    
+    

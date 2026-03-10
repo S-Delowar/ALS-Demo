@@ -3,10 +3,12 @@ from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from django.db import transaction
 
-from .models import SkillGap, UserProfile, Education, Experience, Project, Certification
+from .models import LearningInsight, SkillGap, UserProfile, Education, Experience, Project, Certification
 from .serializers import (
-    SkillGapSerializer, UserProfileSerializer, EducationSerializer, 
+    LearningInsightSerializer, SkillGapSerializer, UserProfileSerializer, EducationSerializer, 
     ExperienceSerializer, ProjectSerializer, CertificationSerializer
 )
 from .tasks import process_resume_task, run_skill_gap_analysis_task
@@ -63,20 +65,24 @@ class NestedEntityViewSet(mixins.CreateModelMixin,
                           viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ['post', 'patch', 'delete'] # Explicitly blocks GET and PUT
+    trigger_skill_gap = True
 
     def perform_create(self, serializer):
         profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
         serializer.save(profile=profile)
-        trigger_skill_gap_agent(self.request.user.id)
+        if self.trigger_skill_gap:
+            trigger_skill_gap_agent(self.request.user.id)
         
     def perform_update(self, serializer):
         super().perform_update(serializer)
-        trigger_skill_gap_agent(self.request.user.id) # Trigger on edit
+        if self.trigger_skill_gap:
+            trigger_skill_gap_agent(self.request.user.id) # Trigger on edit
 
     def perform_destroy(self, instance):
         user_id = self.request.user.id
         instance.delete()
-        trigger_skill_gap_agent(user_id)
+        if self.trigger_skill_gap:
+            trigger_skill_gap_agent(user_id)
 
 
 # Now we just inherit the custom base class for a beautifully clean file
@@ -102,13 +108,15 @@ class CertificationViewSet(NestedEntityViewSet):
     
     
 # --- Skill Gap ViewSet for User Edits ---
-class SkillGapViewSet(mixins.CreateModelMixin, 
+class SkillGapViewSet(mixins.ListModelMixin,
+                      mixins.RetrieveModelMixin,
+                      mixins.CreateModelMixin, 
                       mixins.UpdateModelMixin, 
                       mixins.DestroyModelMixin, 
                       viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = SkillGapSerializer
-    http_method_names = ['post', 'patch', 'delete']
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
         return SkillGap.objects.filter(profile__user=self.request.user)
@@ -121,3 +129,51 @@ class SkillGapViewSet(mixins.CreateModelMixin,
     def perform_update(self, serializer):
         # If they edit an AI-generated one, it becomes "theirs"
         serializer.save(is_manual=True)
+        
+
+# --- Learning Insight ViewSet for AI-generated insights ---
+class LearningInsightViewSet(NestedEntityViewSet):
+    serializer_class = LearningInsightSerializer
+    
+    # Turn off the skill gap agent for this specific endpoint
+    trigger_skill_gap = False 
+
+    def get_queryset(self):
+        return LearningInsight.objects.filter(profile__user=self.request.user)
+
+    def perform_create(self, serializer):
+        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+        # Force is_manual=True so the Chat Profiler AI respects the user's manual entry
+        serializer.save(profile=profile, is_manual=True)
+        
+    def perform_update(self, serializer):
+        # If the user edits an AI-generated insight, claim it as manual
+        serializer.save(is_manual=True)
+        
+        
+        
+
+# Trigger Skill Gap Analyzer Agent
+class TriggerSkillGapAnalysisView(APIView):
+    """
+    Dedicated endpoint to manually trigger the AI Skill Gap Analysis task.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, *args, **kwargs):
+        user_id = request.user.id
+        
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+        except UserProfile.DoesNotExist:
+            return Response({"error": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        transaction.on_commit(lambda: run_skill_gap_analysis_task.delay(user_id))
+    
+        return Response(
+            {
+                "status": "Accepted",
+                "message": "Skill gap analysis has been queued and is running in the background. You will see updated skill gaps shortly."
+            },
+            status=status.HTTP_202_ACCEPTED
+        )
